@@ -5,7 +5,7 @@ from spotipy import Spotify
 from tqdm import tqdm
 
 from dependencies.spotify.models import Track
-from dependencies.wikipedia import Single
+from dependencies.wikipedia.models import Single
 
 
 def get_spotify_track_from_single(single: Single, spotify_client: Spotify) -> Track:

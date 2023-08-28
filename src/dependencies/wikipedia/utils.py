@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor
 import requests
 from bs4 import BeautifulSoup
 
-from dependencies.wikipedia import Single
+from dependencies.wikipedia.models import Single
 
 
 def get_billboard_hot_singles_for_year(year: int) -> list[Single]:

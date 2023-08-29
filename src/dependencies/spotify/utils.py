@@ -1,4 +1,3 @@
-
 import math
 
 from spotipy import Spotify
@@ -38,13 +37,18 @@ def get_spotify_songs(singles: list[Single], spotify_client: Spotify) -> list[Tr
         elif track := get_spotify_track_from_single_replace_artist(single, spotify_client):
             tracks.append(track)
         else:
-            print('Fuck')
+            print("Fuck")
     return tracks
 
 
-def create_spotify_playlist(tracks: list[Track], spotify_client: Spotify, playlist_name="SpotifyByTheYears",
-                            playlist_id: str | None = None, limit=300) -> str:
-    playlist_id = playlist_id or spotify_client.user_playlist_create(spotify_client.me()['id'], playlist_name)["id"]
+def create_spotify_playlist(
+    tracks: list[Track],
+    spotify_client: Spotify,
+    playlist_name="SpotifyByTheYears",
+    playlist_id: str | None = None,
+    limit=300,
+) -> str:
+    playlist_id = playlist_id or spotify_client.user_playlist_create(spotify_client.me()["id"], playlist_name)["id"]
     tracks = list({t.uri for t in tracks})[:limit]
     with tqdm(total=math.ceil(len(tracks) / 100), desc=f"Adding the songs to the playlist") as pbar:
         while tracks:

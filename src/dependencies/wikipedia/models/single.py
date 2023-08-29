@@ -5,6 +5,7 @@ from bs4 import Tag
 import re
 
 from dependencies.spotify.models import Track
+from dependencies.wikipedia.models import characters_to_remove, censored_words
 
 artist_delimiters = (", ", " and ", " featuring ", " or ")
 
@@ -28,17 +29,17 @@ class Single:
         if self.index == (2002, 15):
             self.title = "I Need a Girl (Pt. 1) [feat. Usher & Loon]"
         if self.index == (2002, 18):
-            self.title = 'I Need a Girl (Pt. 2) [feat. Loon, Ginuwine, Mario Winans]'
+            self.title = "I Need a Girl (Pt. 2) [feat. Loon, Ginuwine, Mario Winans]"
         if self.index == (2005, 33):
-            self.title = 'Obsesion (No Es Amor) (feat. Baby Bash)'
+            self.title = "Obsesion (No Es Amor) (feat. Baby Bash)"
         if self.index == (2006, 75):
-            self.title = 'Deja Vu (feat. Jay-Z)'
+            self.title = "Deja Vu (feat. Jay-Z)"
         if self.index == (2007, 22):
-            self.title = 'What Goes Around.../...Comes Around (Interlude)'
+            self.title = "What Goes Around.../...Comes Around (Interlude)"
         if self.index == (2008, 38):
-            self.title = 'Bust It Baby, Pt. 2 (feat. Ne-Yo)'
+            self.title = "Bust It Baby, Pt. 2 (feat. Ne-Yo)"
         if self.index == (2021, 28):
-            self.title = 'DÁKITI'
+            self.title = "DÁKITI"
 
     @property
     def index(self):
@@ -61,7 +62,7 @@ class Single:
                 if left in right:
                     return True
                 # Remove quotes, brackets, hyphen,
-                for character in ('“', '”', '"', "‘", "’", "'", "(", "[", "{", ")", "]", "}", "-", ".", ",", "!", "?"):
+                for character in characters_to_remove:
                     left, right = left.replace(character, ""), right.replace(character, "")
                 # Remove any double spaces created by removing characters
                 left, right = left.replace("  ", " "), right.replace("  ", " ")
@@ -69,8 +70,7 @@ class Single:
                     return True
                 if left.replace(" ", "") == right.replace(" ", ""):
                     return True
-                for word, censor in (
-                ("fuck", "f**k"), ("niggas", "ni**as"), ("pussy", 'p*$$y'), ("&", "and"), ("Shit", "S**t")):
+                for word, censor in censored_words.items():
                     if left.replace(word, censor) in right:
                         return True
         return False

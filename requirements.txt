@@ -1,7 +1,0 @@
-beautifulsoup4
-requests
-pydantic
-spotipy
-python-dotenv
-tqdm
-click

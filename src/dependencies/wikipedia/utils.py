@@ -13,7 +13,7 @@ def get_billboard_hot_singles_for_year(year: int) -> list[Single]:
     page = requests.get(f"https://en.wikipedia.org/wiki/Billboard_Year-End_Hot_100_singles_of_{year}")
     soup = BeautifulSoup(page.content, "html.parser")
     # Throw away header row
-    table_data = soup.find('table', {'class': 'wikitable sortable'}).find("tbody").find_all("tr")[1:]
+    table_data = soup.find("table", {"class": "wikitable sortable"}).find("tbody").find_all("tr")[1:]
     assert len(table_data) == 100
     return [Single.from_bs4(row, year) for row in table_data]
 

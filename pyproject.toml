@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "HotSinglesInYourArea"
+authors = [
+    { name = "William Fox", email = "wfox96@gmail.com" },
+]
+description = "Creates Spotify playlists based on Billboard Year-End Hot 100 singles"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "beautifulsoup4",
+    "black",
+    "click",
+    "pydantic",
+    "python-dotenv",
+    "requests",
+    "spotipy",
+    "tqdm"
+]
+
+dynamic = ["version"]
+
+[project.scripts]
+hsa = "cli:cli"

@@ -4,3 +4,4 @@ pydantic
 spotipy
 python-dotenv
 tqdm
+click

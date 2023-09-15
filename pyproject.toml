@@ -27,4 +27,4 @@ dependencies = [
 dynamic = ["version"]
 
 [project.scripts]
-hsa = "cli:cli"
+hot = "cli:cli"

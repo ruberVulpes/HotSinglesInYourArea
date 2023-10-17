@@ -1,11 +1,15 @@
 import itertools
 from dataclasses import dataclass
 
+import rapidfuzz.process
 from bs4 import Tag
 import re
 
+from rapidfuzz import fuzz
+from rapidfuzz.utils import default_process
+
+from dependencies.rapidfuzz.processor import custom_processor
 from dependencies.spotify.models import Track
-from dependencies.wikipedia.models import characters_to_remove, censored_words
 
 artist_delimiters = (", ", " and ", " featuring ", " or ")
 
@@ -17,63 +21,67 @@ class Single:
     title: str
     artists: list[str]
 
-    def __post_init__(self):
-        if self.index in ((2000, 97), (2001, 10)):
-            self.title = self.title.replace("Part I", "Pt. 1")
-        if self.index == (2001, 28):
-            self.title = self.title.replace("U", "You")
-        if self.index == (2001, 54):
-            self.artists = [" and ".join(self.artists)]
-        if self.index == (2002, 13):
-            self.title = "Ain't It Funny (feat. Ja Rule & Cadillac Tah) - Murder Remix"
-        if self.index == (2002, 15):
-            self.title = "I Need a Girl (Pt. 1) [feat. Usher & Loon]"
-        if self.index == (2002, 18):
-            self.title = "I Need a Girl (Pt. 2) [feat. Loon, Ginuwine, Mario Winans]"
-        if self.index == (2005, 33):
-            self.title = "Obsesion (No Es Amor) (feat. Baby Bash)"
-        if self.index == (2006, 75):
-            self.title = "Deja Vu (feat. Jay-Z)"
-        if self.index == (2007, 22):
-            self.title = "What Goes Around.../...Comes Around (Interlude)"
-        if self.index == (2008, 38):
-            self.title = "Bust It Baby, Pt. 2 (feat. Ne-Yo)"
-        if self.index == (2021, 28):
-            self.title = "DÁKITI"
+    # def __post_init__(self):
+    #     if self.index in ((2000, 97), (2001, 10)):
+    #         self.title = self.title.replace("Part I", "Pt. 1")
+    #     if self.index == (2001, 28):
+    #         self.title = self.title.replace("U", "You")
+    #     if self.index == (2001, 54):
+    #         self.artists = [" and ".join(self.artists)]
+    #     if self.index == (2002, 13):
+    #         self.title = "Ain't It Funny (feat. Ja Rule & Cadillac Tah) - Murder Remix"
+    #     if self.index == (2002, 15):
+    #         self.title = "I Need a Girl (Pt. 1) [feat. Usher & Loon]"
+    #     if self.index == (2002, 18):
+    #         self.title = "I Need a Girl (Pt. 2) [feat. Loon, Ginuwine, Mario Winans]"
+    #     if self.index == (2005, 33):
+    #         self.title = "Obsesion (No Es Amor) (feat. Baby Bash)"
+    #     if self.index == (2006, 75):
+    #         self.title = "Deja Vu (feat. Jay-Z)"
+    #     if self.index == (2007, 22):
+    #         self.title = "What Goes Around.../...Comes Around (Interlude)"
+    #     if self.index == (2008, 38):
+    #         self.title = "Bust It Baby, Pt. 2 (feat. Ne-Yo)"
+    #     if self.index == (2021, 28):
+    #         self.title = "DÁKITI"
 
     @property
     def index(self):
         return self.year, self.number
 
     @property
-    def artist_query(self):
-        return f"{self.artists[0]}"
-
-    @property
     def track_query(self):
         return f"{self.title}"
+
+    @property
+    def artist_query(self):
+        return f"{self.artists[0]}"
 
     def spotify_search_string(self, use_first_artist: bool) -> str:
         return f"{self.track_query} {f'artist:{self.artist_query}' if use_first_artist else ''}"
 
-    def is_spotify_track(self, track: Track) -> bool:
-        if any(artist.lower() in {a.name.lower() for a in track.artists} for artist in self.artists):
-            for left, right in itertools.permutations((self.title.lower(), track.name.lower())):
-                if left in right:
-                    return True
-                # Remove quotes, brackets, hyphen,
-                for character in characters_to_remove:
-                    left, right = left.replace(character, ""), right.replace(character, "")
-                # Remove any double spaces created by removing characters
-                left, right = left.replace("  ", " "), right.replace("  ", " ")
-                if left in right:
-                    return True
-                if left.replace(" ", "") == right.replace(" ", ""):
-                    return True
-                for word, censor in censored_words.items():
-                    if left.replace(word, censor) in right:
-                        return True
-        return False
+    def artists_string(self) -> str:
+        return ", ".join(self.artists)
+
+    def fuzz_spotify_tracks(self, tracks: list[Track]) -> tuple[float, Track]:
+        filtered_tracks = list()
+        for track in tracks:
+            artist_ratio = fuzz.WRatio(self.artists_string(), track.artists_string(), processor=custom_processor)
+            if artist_ratio >= 75:
+                title_ratio = fuzz.WRatio(self.title, track.name, processor=custom_processor)
+                if title_ratio >= 80:
+                    filtered_tracks.append(((artist_ratio + title_ratio), track))
+        if filtered_tracks:
+            # TODO: Combine line after done debugging
+            result = max((track for track in filtered_tracks), key=lambda t: t[0])
+            return result[0], result[-1]
+
+    def fuzz_track(self, track: Track) -> float:
+        if "feat" in track.name:
+            title_ratio = fuzz.partial_ratio(self.title, track.name, processor=custom_processor)
+        else:
+            title_ratio = fuzz.ratio(self.title, track.name, processor=custom_processor)
+        return title_ratio + fuzz.ratio(self.artists_string(), track.artists_string(), processor=custom_processor)
 
     @staticmethod
     def from_bs4(tag: Tag, year: int):

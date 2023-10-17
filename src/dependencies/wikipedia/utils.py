@@ -2,8 +2,11 @@ import datetime
 import itertools
 from concurrent.futures import ThreadPoolExecutor
 
+import cachetools
 import requests
 from bs4 import BeautifulSoup
+from cachetools import LRUCache
+from shelved_cache import PersistentCache
 
 from dependencies.wikipedia.models import Single
 

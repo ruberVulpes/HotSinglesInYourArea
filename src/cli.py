@@ -33,18 +33,21 @@ def cli(start_year: int, end_year: int, limit: int):
 
 
 def main(start_year: int, end_year: int | None, limit: int):
-    click.echo("CLI")
+    click.echo("Finding Hot Singles in your area")
     end_year = end_year or start_year
-    playlist_name = f"HotSinglesInYourArea {start_year} - {end_year}"
+    playlist_name = f"HotSpot {start_year} - {end_year}"
     singles = get_billboard_hot_singles(start_year, end_year)
     spotify_client = Spotify(auth_manager=SpotifyOAuth(scope="playlist-modify-public"))
-    tracks = sorted(
-        get_spotify_songs(singles, spotify_client),
-        key=lambda t: t.popularity,
-        reverse=True,
-    )
+    # tracks = sorted(
+    #     ,
+    #     key=lambda t: t.popularity,
+    #     reverse=True,
+    # )
+    # return
+    tracks = get_spotify_songs(singles, spotify_client)
     create_spotify_playlist(tracks, spotify_client, playlist_name=playlist_name, limit=limit)
 
 
+
 if __name__ == "__main__":
-    main(2012, None, 300)
+    main(2002, None, 300)

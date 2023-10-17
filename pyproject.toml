@@ -21,10 +21,11 @@ dependencies = [
     "python-dotenv",
     "requests",
     "spotipy",
-    "tqdm"
+    "tqdm",
+    "rapidfuzz"
 ]
 
 dynamic = ["version"]
 
 [project.scripts]
-hsa = "cli:cli"
+hotspot = "cli:cli"
